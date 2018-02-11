@@ -172,6 +172,34 @@ public class App {
 
     public static void main(String[] args){
         createDataBase("my_database",8086);
+        Thread functionlot = new Thread("functionlot") {
+            public void run(){
+                System.out.println("run by: " + getName());
+                for(int t =0; t < 10;t++){
+                    List<Measurement> measurements = new ArrayList<>();
+                    Map<String,String> listPoly =  new HashMap<>();
+                    Map<String,String> listProb =  new HashMap<>();
+                    for(int i = 0; i < 1;i++){
+                        String sensName;
+                        sensName =" functionlot"+Integer.toString(i);
+                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/ex.json","sensorName","value","time","json",0,t);
+                        if (measurement == null) {
+                            continue;
+                        }
+                        measurements.add(measurement);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                    sendToInfluxDB(measurements);
+                }
+            }
+        };
+        functionlot.start();
+
         Thread randomLot = new Thread("randomLot") {
             public void run(){
                 System.out.println("run by: " + getName());
@@ -199,6 +227,62 @@ public class App {
             }
         };
         randomLot.start();
+
+        Thread csvLow = new Thread("csvLow") {
+            public void run(){
+                System.out.println("run by: " + getName());
+                for(int t =0; t < 10;t++){
+                    List<Measurement> measurements = new ArrayList<>();
+                    Map<String,String> listPoly =  new HashMap<>();
+                    Map<String,String> listProb =  new HashMap<>();
+                    for(int i = 0; i < 1;i++){
+                        String sensName;
+                        sensName =" csvLow"+Integer.toString(i);
+                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/data4.csv","1","8","0","csv",0,t);
+                        if (measurement == null) {
+                            continue;
+                        }
+                        measurements.add(measurement);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                    sendToInfluxDB(measurements);
+                }
+            }
+        };
+        csvLow.start();
+
+        Thread jsonLaw = new Thread("jsonLaw") {
+            public void run(){
+                System.out.println("run by: " + getName());
+                for(int t =0; t < 10;t++){
+                    List<Measurement> measurements = new ArrayList<>();
+                    Map<String,String> listPoly =  new HashMap<>();
+                    Map<String,String> listProb =  new HashMap<>();
+                    for(int i = 0; i < 1;i++){
+                        String sensName;
+                        sensName =" jsonLaw"+Integer.toString(i);
+                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/ex.json","sensorName","value","time","json",0,t);
+                        if (measurement == null) {
+                            continue;
+                        }
+                        measurements.add(measurement);
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                    sendToInfluxDB(measurements);
+                }
+            }
+        };
+        jsonLaw.start();
 
     }
 }
