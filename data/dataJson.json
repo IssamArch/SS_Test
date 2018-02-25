@@ -1,0 +1,58 @@
+
+[
+  {
+    "sensorName":"sensorJs1",
+    "time":1518394200000,
+    "value":8
+  },
+  {
+    "sensorName":"sensorJs1",
+    "time":1518399000000,
+    "value":2
+  },
+{
+    "sensorName":"sensorJs1",
+    "time":1518405000000,
+    "value":15
+  },{
+    "sensorName":"sensorJs1",
+    "time":1518420180000,
+    "value":4
+  },{
+    "sensorName":"sensorJs1",
+    "time":1518431280000,
+    "value":9
+  },{
+    "sensorName":"sensorJs1",
+    "time":1518485280000,
+    "value":20
+  },{
+    "sensorName":"sensorJs1",
+    "time":1518500880000,
+    "value":17
+  },{
+    "sensorName":"sensorJs1",
+    "time":1518526080000,
+    "value":-2
+  }
+,{
+    "sensorName":"sensorJs1",
+    "time":1518541800000,
+    "value":3
+  }
+,{
+    "sensorName":"sensorJs1",
+    "time":1518556980000,
+    "value":12
+  }
+,{
+    "sensorName":"sensorJs1",
+    "time":1518008456000,
+    "value":-2
+  }
+,{
+    "sensorName":"sensorJs1",
+    "time":1518008456000,
+    "value":-2
+  }
+]

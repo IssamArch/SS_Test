@@ -291,7 +291,6 @@ public class App {
                         ArrayList<Integer> listeRandom = remplirRandom(12);
                         ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
                         int k = RandomGorilla(12,risque);
-                        System.out.println(k);
                         for(int t =0; t < 12;t++){
                             List<Measurement> measurements = new ArrayList<>();
                             Map<String,String> listPoly =  new HashMap<>();
@@ -344,7 +343,6 @@ public class App {
                         ArrayList<Integer> listeRandom = remplirRandom(10);
                         ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
                         int k = RandomGorilla(10,risque);
-                        System.out.println(k);
                         for(int t =0; t < 10;t++){
                             List<Measurement> measurements = new ArrayList<>();
                             Map<String,String> listPoly =  new HashMap<>();
@@ -397,7 +395,6 @@ public class App {
                         ArrayList<Integer> listeRandom = remplirRandom(10);
                         ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
                         int k = RandomGorilla(10,risque);
-                        System.out.println(k);
                         for(int t =0; t < 10;t++){
                             List<Measurement> measurements = new ArrayList<>();
                             Map<String,String> listPoly =  new HashMap<>();
@@ -450,7 +447,6 @@ public class App {
                         ArrayList<Integer> listeRandom = remplirRandom(10);
                         ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
                         int k = RandomGorilla(10,risque);
-                        System.out.println(k);
                         for(int t =0; t < 10;t++){
                             List<Measurement> measurements = new ArrayList<>();
                             Map<String,String> listPoly =  new HashMap<>();
@@ -506,7 +502,6 @@ public class App {
                         ArrayList<Integer> listeRandom = remplirRandom(10);
                         ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
                         int k = RandomGorilla(10,risque);
-                        System.out.println(k);
                         for(int t =0; t < 10;t++){
                             List<Measurement> measurements = new ArrayList<>();
                             Map<String,String> listPoly =  new HashMap<>();
