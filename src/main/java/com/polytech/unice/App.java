@@ -24,6 +24,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import net.andreinc.mockneat.MockNeat;
+import net.andreinc.mockneat.unit.objects.Probabilities;
 public class App {
     public static class Measurement<T> {
         private String sensorName;
@@ -50,6 +52,21 @@ public class App {
                     ", timeStamp=" + timeStamp +
                     ", value=" + value +
                     '}';
+        }
+    }
+
+    public static class Pair<K, T> {
+        private K key;
+        private T value;
+        public Pair(K key, T value){
+            this.key = key;
+            this.value = value;
+        }
+        public K getKey() {
+            return key;
+        }
+        public T getValue() {
+            return value;
         }
     }
     public static InfluxDB influxDB;
@@ -151,6 +168,17 @@ public class App {
         }
         return null;
     }
+    public static ArrayList<Integer> remplirRandom(int nbr){
+        ArrayList<Integer> listeRandom = new ArrayList<>();
+        for(int i = 0;i < 50;i++){
+            Random random = new Random();
+            int randomNumber = random.nextInt(100000000 + 1 - 50000000) + 50000000;
+            listeRandom.add(randomNumber);
+        }
+        Collections.sort(listeRandom);
+        return  listeRandom;
+    }
+    public  static ArrayList<Integer> listeRandom = remplirRandom(50);
     public static Measurement createLawFunction(String sensName, Map<String,String> funcs, int t ) {
         Object value;
         String function = "iff(";
@@ -167,122 +195,369 @@ public class App {
         System.out.println("      new measurement for " + sensName + " from function law ! :" );
         System.out.println("       "+ e.getExpressionString()+ "="+ result + " when x = " + x.getArgumentValue()) ;
         value = result;
-        return new Measurement(sensName, System.currentTimeMillis(), value);
+        long timestamp = System.currentTimeMillis();
+        Long tt ;
+        tt = timestamp + listeRandom.get(t);
+        Measurement measurement = new Measurement(sensName,tt,value);
+        return measurement;
     }
 
+    public static Measurement createMarkovLow(String sensor, List<Pair<String, String>> input, int t) {
+        List<List<Double>> matrice = new ArrayList<List<Double>>();
+        HashMap<String, List<Double>> myInput = new HashMap<String, List<Double>>();
+        int currState = 0;
+        for(Pair<String, String> p : input){
+            if(myInput.containsKey(p.getKey())){
+                myInput.get(p.getKey()).add(Double.parseDouble(p.getValue()));
+            }else{
+                List<Double> liste = new ArrayList<Double>();
+                liste.add(Double.parseDouble(p.getValue()));
+                myInput.put(p.getKey(), liste);
+            }
+        }
+        for(String key : myInput.keySet()){
+            List<Double> ligne = new ArrayList<Double>();
+            for(Double f : myInput.get(key)) {
+                ligne.add(f);
+            }
+            matrice.add(ligne);
+        }
+        MockNeat mockNeat = MockNeat.threadLocal();
+        Probabilities<Integer> p = mockNeat.probabilites(Integer.class);
+        for(int i = 0 ; i <matrice.size(); i++){
+            p.add(matrice.get(currState).get(i), i);
+        }
+        currState = p.val();
+        long timestamp = System.currentTimeMillis();
+        Long tt ;
+        tt = timestamp + listeRandom.get(t);
+        Measurement measurement = new Measurement(sensor,tt,currState);
+        return measurement;
+    }
+    // chaos
+    static Boolean gorilla_Exist =false;
+    static Boolean gorilla = false;
+    static String risque = "average";
+    public static int RandomGorilla(int duration,String risque){
+        if(risque == "low"){
+            Random random = new Random();
+            int randomNumber = random.nextInt(duration * 2 +1  - 0) + 0;
+            return randomNumber;
+        }
+        else if(risque == "average") {
+            Random random = new Random();
+            int randomNumber = random.nextInt(duration  +1  - 0) + 0;
+            return randomNumber;
+        }
+        else if(risque ==  "strong"){
+            Random random = new Random();
+            int randomNumber = random.nextInt((duration/2)  - 0) + 0;
+            return randomNumber;
+        }
+        return 1;
+    }
+    static String risqueMonkey = "strong";
+    static Boolean monkey=false;
+    public static ArrayList<Integer> randomMonkey(int nbrSensor, String risque){
+        ArrayList<Integer> temp = new ArrayList<>();
+        int size = 0;
+        if(risque == "strong" && monkey){
+            Random random = new Random();
+            int randomNumber = random.nextInt(nbrSensor * 2 +1  - 0) + 0;
+            size =  randomNumber;
+        }
+        else if(risque == "average" && monkey) {
+            Random random = new Random();
+            size = random.nextInt(nbrSensor  +1  - 0) + 0;
+        }
+        else if(risque ==  "low" && monkey){
+            Random random = new Random();
+            size= random.nextInt((nbrSensor/2)  - 0) + 0;
+        }
+        for (int i =0; i< size;i++){
+            Random random = new Random();
+            temp.add(random.nextInt(nbrSensor +1  - 0) + 0);
+        }
+        return temp;
+    }
     public static void main(String[] args){
         createDataBase("my_database",8086);
-        Thread functionlot = new Thread("functionlot") {
+        Thread parkingRandom = new Thread("parkingRandom") {
             public void run(){
-                System.out.println("run by: " + getName());
-                for(int t =0; t < 10;t++){
-                    List<Measurement> measurements = new ArrayList<>();
-                    Map<String,String> listPoly =  new HashMap<>();
-                    Map<String,String> listProb =  new HashMap<>();
-                    for(int i = 0; i < 1;i++){
-                        String sensName;
-                        sensName =" functionlot"+Integer.toString(i);
-                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/ex.json","sensorName","value","time","json",0,t);
-                        if (measurement == null) {
-                            continue;
+                int dureeMaxi = 0;
+                try {
+                    while (gorilla == false && dureeMaxi < 12) {
+                        System.out.println("run by: " + getName());
+                        ArrayList<Integer> listeRandom = remplirRandom(12);
+                        ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
+                        int k = RandomGorilla(12,risque);
+                        System.out.println(k);
+                        for(int t =0; t < 12;t++){
+                            List<Measurement> measurements = new ArrayList<>();
+                            Map<String,String> listPoly =  new HashMap<>();
+                            List<Pair<String, String>> listMarkov = new ArrayList<Pair<String, String>>();
+                            for(int i = 0; i < 1;i++){
+                                String sensName;
+                                sensName =" parkingRandom"+Integer.toString(i);
+                                Measurement measurement ;
+                                if( listeMonkey.contains(i)){
+                                    measurement = null;
+                                    System.out.println(" monkey attaque sensor num! "+ i);
+                                } else {
+                                    measurement = createrandomLow(sensName);
+                                }
+                                if (measurement == null) {
+                                    continue;
+                                }
+                                measurements.add(measurement);
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                            sendToInfluxDB(measurements);
+                            if(t ==k && gorilla_Exist == true){
+                                gorilla = true;
+                            }
+                            if(gorilla == true){
+                                System.out.println("Gorilla attack !!! we can't finished "+(12- t )+" lists from our 12 lists");
+                                break;
+                            }
+                            dureeMaxi++;
                         }
-                        measurements.add(measurement);
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Thread.sleep (2000);
                     }
-                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
-                    sendToInfluxDB(measurements);
                 }
+                catch (InterruptedException exception){}
             }
         };
-        functionlot.start();
+        parkingRandom.start();
 
-        Thread randomLot = new Thread("randomLot") {
+        Thread jardinCsv = new Thread("jardinCsv") {
             public void run(){
-                System.out.println("run by: " + getName());
-                for(int t =0; t < 10;t++){
-                    List<Measurement> measurements = new ArrayList<>();
-                    Map<String,String> listPoly =  new HashMap<>();
-                    Map<String,String> listProb =  new HashMap<>();
-                    for(int i = 0; i < 2;i++){
-                        String sensName;
-                        sensName =" randomLot"+Integer.toString(i);
-                        Measurement measurement = createrandomLow(sensName);
-                        if (measurement == null) {
-                            continue;
+                int dureeMaxi = 0;
+                try {
+                    while (gorilla == false && dureeMaxi < 10) {
+                        System.out.println("run by: " + getName());
+                        ArrayList<Integer> listeRandom = remplirRandom(10);
+                        ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
+                        int k = RandomGorilla(10,risque);
+                        System.out.println(k);
+                        for(int t =0; t < 10;t++){
+                            List<Measurement> measurements = new ArrayList<>();
+                            Map<String,String> listPoly =  new HashMap<>();
+                            List<Pair<String, String>> listMarkov = new ArrayList<Pair<String, String>>();
+                            for(int i = 0; i < 1;i++){
+                                String sensName;
+                                sensName =" jardinCsv"+Integer.toString(i);
+                                Measurement measurement ;
+                                if( listeMonkey.contains(i)){
+                                    measurement = null;
+                                    System.out.println(" monkey attaque sensor num! "+ i);
+                                } else {
+                                    measurement = createfilelow("/home/user/Bureau/dataDemo/dataCsv.csv","1","8","0","csv",0,t);
+                                }
+                                if (measurement == null) {
+                                    continue;
+                                }
+                                measurements.add(measurement);
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                            sendToInfluxDB(measurements);
+                            if(t ==k && gorilla_Exist == true){
+                                gorilla = true;
+                            }
+                            if(gorilla == true){
+                                System.out.println("Gorilla attack !!! we can't finished "+(10- t )+" lists from our 10 lists");
+                                break;
+                            }
+                            dureeMaxi++;
                         }
-                        measurements.add(measurement);
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Thread.sleep (2000);
                     }
-                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
-                    sendToInfluxDB(measurements);
                 }
+                catch (InterruptedException exception){}
             }
         };
-        randomLot.start();
+        jardinCsv.start();
 
-        Thread csvLow = new Thread("csvLow") {
+        Thread bureauJson = new Thread("bureauJson") {
             public void run(){
-                System.out.println("run by: " + getName());
-                for(int t =0; t < 10;t++){
-                    List<Measurement> measurements = new ArrayList<>();
-                    Map<String,String> listPoly =  new HashMap<>();
-                    Map<String,String> listProb =  new HashMap<>();
-                    for(int i = 0; i < 1;i++){
-                        String sensName;
-                        sensName =" csvLow"+Integer.toString(i);
-                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/data4.csv","1","8","0","csv",0,t);
-                        if (measurement == null) {
-                            continue;
+                int dureeMaxi = 0;
+                try {
+                    while (gorilla == false && dureeMaxi < 10) {
+                        System.out.println("run by: " + getName());
+                        ArrayList<Integer> listeRandom = remplirRandom(10);
+                        ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
+                        int k = RandomGorilla(10,risque);
+                        System.out.println(k);
+                        for(int t =0; t < 10;t++){
+                            List<Measurement> measurements = new ArrayList<>();
+                            Map<String,String> listPoly =  new HashMap<>();
+                            List<Pair<String, String>> listMarkov = new ArrayList<Pair<String, String>>();
+                            for(int i = 0; i < 1;i++){
+                                String sensName;
+                                sensName =" bureauJson"+Integer.toString(i);
+                                Measurement measurement ;
+                                if( listeMonkey.contains(i)){
+                                    measurement = null;
+                                    System.out.println(" monkey attaque sensor num! "+ i);
+                                } else {
+                                    measurement = createfilelow("/home/user/Bureau/dataDemo/dataJson.json","sensorName","value","time","json",4,t);
+                                }
+                                if (measurement == null) {
+                                    continue;
+                                }
+                                measurements.add(measurement);
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                            sendToInfluxDB(measurements);
+                            if(t ==k && gorilla_Exist == true){
+                                gorilla = true;
+                            }
+                            if(gorilla == true){
+                                System.out.println("Gorilla attack !!! we can't finished "+(10- t )+" lists from our 10 lists");
+                                break;
+                            }
+                            dureeMaxi++;
                         }
-                        measurements.add(measurement);
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Thread.sleep (2000);
                     }
-                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
-                    sendToInfluxDB(measurements);
                 }
+                catch (InterruptedException exception){}
             }
         };
-        csvLow.start();
+        bureauJson.start();
 
-        Thread jsonLaw = new Thread("jsonLaw") {
+        Thread salleFunction = new Thread("salleFunction") {
             public void run(){
-                System.out.println("run by: " + getName());
-                for(int t =0; t < 10;t++){
-                    List<Measurement> measurements = new ArrayList<>();
-                    Map<String,String> listPoly =  new HashMap<>();
-                    Map<String,String> listProb =  new HashMap<>();
-                    for(int i = 0; i < 1;i++){
-                        String sensName;
-                        sensName =" jsonLaw"+Integer.toString(i);
-                        Measurement measurement = createfilelow("/home/user/Bureau/testShel/ex.json","sensorName","value","time","json",0,t);
-                        if (measurement == null) {
-                            continue;
+                int dureeMaxi = 0;
+                try {
+                    while (gorilla == false && dureeMaxi < 10) {
+                        System.out.println("run by: " + getName());
+                        ArrayList<Integer> listeRandom = remplirRandom(10);
+                        ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
+                        int k = RandomGorilla(10,risque);
+                        System.out.println(k);
+                        for(int t =0; t < 10;t++){
+                            List<Measurement> measurements = new ArrayList<>();
+                            Map<String,String> listPoly =  new HashMap<>();
+                            List<Pair<String, String>> listMarkov = new ArrayList<Pair<String, String>>();
+                            for(int i = 0; i < 1;i++){
+                                String sensName;
+                                sensName =" salleFunction"+Integer.toString(i);
+                                listPoly.put("x<1","2");
+                                listPoly.put("x>= 1 && x<=3","x^2-3");
+                                listPoly.put("x>3","abs(-2*x)");
+                                Measurement measurement ;
+                                if( listeMonkey.contains(i)){
+                                    measurement = null;
+                                    System.out.println(" monkey attaque sensor num! "+ i);
+                                } else {
+                                    measurement= createLawFunction(sensName,listPoly,t);
+                                }
+                                if (measurement == null) {
+                                    continue;
+                                }
+                                measurements.add(measurement);
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                            sendToInfluxDB(measurements);
+                            if(t ==k && gorilla_Exist == true){
+                                gorilla = true;
+                            }
+                            if(gorilla == true){
+                                System.out.println("Gorilla attack !!! we can't finished "+(10- t )+" lists from our 10 lists");
+                                break;
+                            }
+                            dureeMaxi++;
                         }
-                        measurements.add(measurement);
-                        try {
-                            Thread.sleep(5000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                        Thread.sleep (2000);
                     }
-                    System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
-                    sendToInfluxDB(measurements);
                 }
+                catch (InterruptedException exception){}
             }
         };
-        jsonLaw.start();
+        salleFunction.start();
+
+        Thread garageMarkov = new Thread("garageMarkov") {
+            public void run(){
+                int dureeMaxi = 0;
+                try {
+                    while (gorilla == false && dureeMaxi < 10) {
+                        System.out.println("run by: " + getName());
+                        ArrayList<Integer> listeRandom = remplirRandom(10);
+                        ArrayList<Integer> listeMonkey = randomMonkey(1,risqueMonkey);
+                        int k = RandomGorilla(10,risque);
+                        System.out.println(k);
+                        for(int t =0; t < 10;t++){
+                            List<Measurement> measurements = new ArrayList<>();
+                            Map<String,String> listPoly =  new HashMap<>();
+                            List<Pair<String, String>> listMarkov = new ArrayList<Pair<String, String>>();
+                            for(int i = 0; i < 1;i++){
+                                String sensName;
+                                sensName =" garageMarkov"+Integer.toString(i);
+                                listMarkov.add(new Pair<String, String>("sunny","0.9"));
+                                listMarkov.add(new Pair<String, String>("sunny","0.05"));
+                                listMarkov.add(new Pair<String, String>("sunny","0.05"));
+                                listMarkov.add(new Pair<String, String>("runny","0.4"));
+                                listMarkov.add(new Pair<String, String>("runny","0.4"));
+                                listMarkov.add(new Pair<String, String>("runny","0.2"));
+                                listMarkov.add(new Pair<String, String>("cloudy","0.4"));
+                                listMarkov.add(new Pair<String, String>("cloudy","0.5"));
+                                listMarkov.add(new Pair<String, String>("cloudy","0.1"));
+                                Measurement measurement ;
+                                if( listeMonkey.contains(i)){
+                                    measurement = null;
+                                    System.out.println(" monkey attaque sensor num! "+ i);
+                                } else {
+                                    measurement = createMarkovLow(sensName,listMarkov,t);
+                                }
+                                if (measurement == null) {
+                                    continue;
+                                }
+                                measurements.add(measurement);
+                                try {
+                                    Thread.sleep(5000);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            System.out.println("send list n° "+ t + " of measurements to influxDB : "+ measurements);
+                            sendToInfluxDB(measurements);
+                            if(t ==k && gorilla_Exist == true){
+                                gorilla = true;
+                            }
+                            if(gorilla == true){
+                                System.out.println("Gorilla attack !!! we can't finished "+(10- t )+" lists from our 10 lists");
+                                break;
+                            }
+                            dureeMaxi++;
+                        }
+                        Thread.sleep (2000);
+                    }
+                }
+                catch (InterruptedException exception){}
+            }
+        };
+        garageMarkov.start();
 
     }
 }
